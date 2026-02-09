@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Epstein Document Search - Enhanced</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .main-content {
+            padding: 40px;
+        }
+        
+        .upload-section {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 60px;
+            text-align: center;
+            margin-bottom: 30px;
+            background: #f8f9ff;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .upload-section:hover {
+            border-color: #764ba2;
+            background: #f0f2ff;
+        }
+        
+        .upload-section.dragover {
+            border-color: #4CAF50;
+            background: #e8f5e9;
+        }
+        
+        .upload-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 30px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 10px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .options-panel {
+            display: none;
+            background: #f8f9ff;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .options-panel.active {
+            display: block;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+        
+        .checkbox-label input {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        
+        .progress-bar {
+            display: none;
+            width: 100%;
+            height: 30px;
+            background: #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        
+        .progress-bar.active {
+            display: block;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .results-section {
+            display: none;
+        }
+        
+        .results-section.active {
+            display: block;
+        }
+        
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .stats {
+            display: flex;
+            gap: 30px;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .filter-input {
+            flex: 1;
+            padding: 12px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 30px;
+            font-size: 1em;
+        }
+        
+        .filter-select {
+            padding: 12px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 30px;
+            font-size: 1em;
+            cursor: pointer;
+        }
+        
+        .result-card {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+        
+        .result-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+        
+        .result-card.high-risk {
+            border-color: #f44336;
+            background: #ffebee;
+        }
+        
+        .result-card.low-risk {
+            border-color: #4CAF50;
+            background: #e8f5e9;
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+        
+        .card-title {
+            flex: 1;
+        }
+        
+        .card-name {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #1e3c72;
+            margin-bottom: 5px;
+        }
+        
+        .card-meta {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        
+        .badge-mentions {
+            background: #667eea;
+            color: white;
+        }
+        
+        .badge-risk {
+            background: #ff9800;
+            color: white;
+        }
+        
+        .badge-category {
+            background: #2196F3;
+            color: white;
+        }
+        
+        .ai-analysis {
+            background: #f0f2ff;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+        
+        .ai-summary {
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+        
+        .key-facts {
+            list-style: none;
+        }
+        
+        .key-facts li {
+            padding: 5px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+        
+        .key-facts li:before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+        }
+        
+        .excerpts {
+            margin-top: 15px;
+        }
+        
+        .excerpt {
+            background: #f8f9ff;
+            padding: 15px;
+            border-left: 4px solid #667eea;
+            margin-bottom: 10px;
+            font-size: 0.95em;
+            line-height: 1.6;
+        }
+        
+        .excerpt-link {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 0.85em;
+        }
+        
+        .excerpt-link:hover {
+            text-decoration: underline;
+        }
+        
+        .toggle-excerpts {
+            color: #667eea;
+            cursor: pointer;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+        
+        .toggle-excerpts:hover {
+            text-decoration: underline;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .export-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 20px 30px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            z-index: 1000;
+            display: none;
+        }
+        
+        .notification.show {
+            display: block;
+            animation: slideIn 0.3s;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .notification.success {
+            border-left: 5px solid #4CAF50;
+        }
+        
+        .notification.error {
+            border-left: 5px solid #f44336;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Epstein Document Search</h1>
+            <p>Enhanced Edition - AI-Powered Analysis with Interactive Features</p>
+        </div>
+        
+        <div class="main-content">
+            <!-- Upload Section -->
+            <div class="upload-section" id="uploadSection">
+                <div class="upload-icon">📄</div>
+                <h2>Upload LinkedIn Connections CSV</h2>
+                <p>Drag and drop your file here or click to browse</p>
+                <input type="file" id="fileInput" accept=".csv" style="display: none;">
+                <button class="btn" onclick="document.getElementById('fileInput').click()">
+                    Select File
+                </button>
+                <div style="margin-top: 20px; color: #666; font-size: 0.9em;">
+                    <p>Don't have your LinkedIn data? <a href="#" style="color: #667eea;">Get instructions</a></p>
+                </div>
+            </div>
+            
+            <!-- Options Panel -->
+            <div class="options-panel" id="optionsPanel">
+                <h3>Search Options</h3>
+                <div class="checkbox-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="filterCommon" checked>
+                        <span>Filter common names (reduces false positives)</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="useAI">
+                        <span>Enable AI analysis (requires API key)</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="cachePDFs">
+                        <span>Cache PDFs for faster access</span>
+                    </label>
+                </div>
+                <div id="contactsInfo" style="margin: 20px 0; padding: 15px; background: white; border-radius: 10px;">
+                    <strong>Loaded:</strong> <span id="contactCount">0</span> contacts
+                </div>
+                <button class="btn" onclick="startSearch()">Start Search</button>
+            </div>
+            
+            <!-- Progress Bar -->
+            <div class="progress-bar" id="progressBar">
+                <div class="progress-fill" id="progressFill">0%</div>
+            </div>
+            
+            <!-- Results Section -->
+            <div class="results-section" id="resultsSection">
+                <div class="results-header">
+                    <div class="stats">
+                        <div class="stat-item">
+                            <div class="stat-value" id="totalContacts">0</div>
+                            <div class="stat-label">Total Contacts</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="matchedContacts">0</div>
+                            <div class="stat-label">With Matches</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="totalMentions">0</div>
+                            <div class="stat-label">Total Mentions</div>
+                        </div>
+                    </div>
+                    <div class="export-buttons">
+                        <button class="btn" onclick="exportHTML()">📄 Export HTML</button>
+                        <button class="btn" onclick="exportJSON()">💾 Export JSON</button>
+                        <button class="btn" onclick="showNetworkGraph()">🕸️ Network Graph</button>
+                    </div>
+                </div>
+                
+                <div class="filters">
+                    <input type="text" class="filter-input" id="searchFilter" placeholder="Filter by name, company, or position..." onkeyup="filterResults()">
+                    <select class="filter-select" id="sortBy" onchange="sortResults()">
+                        <option value="mentions">Sort by Mentions</option>
+                        <option value="name">Sort by Name</option>
+                        <option value="risk">Sort by Risk</option>
+                    </select>
+                    <select class="filter-select" id="filterRisk" onchange="filterResults()">
+                        <option value="all">All Risk Levels</option>
+                        <option value="high">High Risk Only</option>
+                        <option value="low">Low Risk Only</option>
+                    </select>
+                </div>
+                
+                <div id="resultsContainer"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="notification" id="notification">
+        <span id="notificationMessage"></span>
+    </div>
+
+    <script>
+        let uploadedFile = null;
+        let searchResults = [];
+        let currentResults = [];
+        
+        // File upload handling
+        const fileInput = document.getElementById('fileInput');
+        const uploadSection = document.getElementById('uploadSection');
+        
+        fileInput.addEventListener('change', handleFileSelect);
+        
+        uploadSection.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadSection.classList.add('dragover');
+        });
+        
+        uploadSection.addEventListener('dragleave', () => {
+            uploadSection.classList.remove('dragover');
+        });
+        
+        uploadSection.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadSection.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                handleFileSelect({target: {files: files}});
+            }
+        });
+        
+        async function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            uploadedFile = file;
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            try {
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('contactCount').textContent = data.contacts_count;
+                    document.getElementById('optionsPanel').classList.add('active');
+                    showNotification('File uploaded successfully!', 'success');
+                } else {
+                    showNotification('Error: ' + data.error, 'error');
+                }
+            } catch (error) {
+                showNotification('Upload failed: ' + error.message, 'error');
+            }
+        }
+        
+        async function startSearch() {
+            if (!uploadedFile) {
+                showNotification('Please upload a file first', 'error');
+                return;
+            }
+            
+            const options = {
+                filter_common_names: document.getElementById('filterCommon').checked,
+                use_ai_analysis: document.getElementById('useAI').checked,
+                cache_pdfs: document.getElementById('cachePDFs').checked
+            };
+            
+            document.getElementById('progressBar').classList.add('active');
+            document.getElementById('optionsPanel').style.display = 'none';
+            
+            try {
+                const response = await fetch('/api/search', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(options)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    searchResults = data.results;
+                    currentResults = [...searchResults];
+                    displayResults(data);
+                    showNotification('Search completed!', 'success');
+                } else {
+                    showNotification('Search failed: ' + data.error, 'error');
+                }
+            } catch (error) {
+                showNotification('Search error: ' + error.message, 'error');
+            } finally {
+                document.getElementById('progressBar').classList.remove('active');
+            }
+        }
+        
+        function displayResults(data) {
+            document.getElementById('resultsSection').classList.add('active');
+            document.getElementById('totalContacts').textContent = data.total_contacts;
+            document.getElementById('matchedContacts').textContent = data.contacts_with_matches;
+            
+            let totalMentions = 0;
+            data.results.forEach(r => totalMentions += r.total_mentions);
+            document.getElementById('totalMentions').textContent = totalMentions;
+            
+            renderResults(currentResults);
+        }
+        
+        function renderResults(results) {
+            const container = document.getElementById('resultsContainer');
+            container.innerHTML = '';
+            
+            results.forEach((result, index) => {
+                const card = createResultCard(result, index);
+                container.appendChild(card);
+            });
+        }
+        
+        function createResultCard(result, index) {
+            const card = document.createElement('div');
+            card.className = 'result-card';
+            
+            if (result.false_positive_score > 0.6) {
+                card.classList.add('high-risk');
+            } else if (result.false_positive_score < 0.3) {
+                card.classList.add('low-risk');
+            }
+            
+            let aiSection = '';
+            if (result.ai_analysis) {
+                const ai = result.ai_analysis;
+                aiSection = `
+                    <div class="ai-analysis">
+                        <strong>🤖 AI Analysis:</strong>
+                        <div class="ai-summary">${ai.summary}</div>
+                        ${ai.key_facts && ai.key_facts.length > 0 ? `
+                            <strong>Key Facts:</strong>
+                            <ul class="key-facts">
+                                ${ai.key_facts.map(fact => `<li>${fact}</li>`).join('')}
+                            </ul>
+                        ` : ''}
+                        <div style="margin-top: 10px;">
+                            <span class="badge badge-category">${ai.category}</span>
+                            <span class="badge" style="background: ${getSentimentColor(ai.sentiment)}">${ai.sentiment}</span>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            const excerpts = result.results.slice(0, 3);
+            const hiddenExcerpts = result.results.slice(3);
+            
+            card.innerHTML = `
+                <div class="card-header">
+                    <div class="card-title">
+                        <div class="card-name">${result.name}</div>
+                        <div class="card-meta">
+                            ${result.position || 'Position not specified'} 
+                            ${result.company ? `at ${result.company}` : ''}
+                        </div>
+                    </div>
+                    <div>
+                        <span class="badge badge-mentions">${result.total_mentions} mentions</span>
+                        ${result.false_positive_score > 0 ? 
+                            `<span class="badge badge-risk">${Math.round(result.false_positive_score * 100)}% FP risk</span>` : ''}
+                    </div>
+                </div>
+                
+                ${aiSection}
+                
+                <div class="excerpts">
+                    <strong>Document Excerpts:</strong>
+                    ${excerpts.map(ex => `
+                        <div class="excerpt">
+                            ${ex.excerpt}
+                            <div style="margin-top: 10px;">
+                                <a href="${ex.pdf_url}" target="_blank" class="excerpt-link">
+                                    📄 View PDF
+                                </a>
+                            </div>
+                        </div>
+                    `).join('')}
+                    
+                    ${hiddenExcerpts.length > 0 ? `
+                        <div class="hidden" id="moreExcerpts${index}">
+                            ${hiddenExcerpts.map(ex => `
+                                <div class="excerpt">
+                                    ${ex.excerpt}
+                                    <div style="margin-top: 10px;">
+                                        <a href="${ex.pdf_url}" target="_blank" class="excerpt-link">
+                                            📄 View PDF
+                                        </a>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="toggle-excerpts" onclick="toggleExcerpts(${index})">
+                            Show ${hiddenExcerpts.length} more excerpts...
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+            
+            return card;
+        }
+        
+        function toggleExcerpts(index) {
+            const element = document.getElementById(`moreExcerpts${index}`);
+            element.classList.toggle('hidden');
+        }
+        
+        function getSentimentColor(sentiment) {
+            const colors = {
+                'neutral': '#2196F3',
+                'concerning': '#f44336',
+                'benign': '#4CAF50'
+            };
+            return colors[sentiment] || '#666';
+        }
+        
+        function filterResults() {
+            const searchTerm = document.getElementById('searchFilter').value.toLowerCase();
+            const riskFilter = document.getElementById('filterRisk').value;
+            
+            currentResults = searchResults.filter(result => {
+                const matchesSearch = !searchTerm || 
+                    result.name.toLowerCase().includes(searchTerm) ||
+                    (result.company && result.company.toLowerCase().includes(searchTerm)) ||
+                    (result.position && result.position.toLowerCase().includes(searchTerm));
+                
+                const matchesRisk = riskFilter === 'all' ||
+                    (riskFilter === 'high' && result.false_positive_score > 0.6) ||
+                    (riskFilter === 'low' && result.false_positive_score < 0.3);
+                
+                return matchesSearch && matchesRisk;
+            });
+            
+            renderResults(currentResults);
+        }
+        
+        function sortResults() {
+            const sortBy = document.getElementById('sortBy').value;
+            
+            currentResults.sort((a, b) => {
+                if (sortBy === 'mentions') {
+                    return b.total_mentions - a.total_mentions;
+                } else if (sortBy === 'name') {
+                    return a.name.localeCompare(b.name);
+                } else if (sortBy === 'risk') {
+                    return b.false_positive_score - a.false_positive_score;
+                }
+            });
+            
+            renderResults(currentResults);
+        }
+        
+        async function exportHTML() {
+            try {
+                const response = await fetch('/api/export/html', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({results: searchResults})
+                });
+                
+                const blob = await response.blob();
+                downloadBlob(blob, 'epstein_report.html');
+                showNotification('HTML report exported!', 'success');
+            } catch (error) {
+                showNotification('Export failed: ' + error.message, 'error');
+            }
+        }
+        
+        async function exportJSON() {
+            try {
+                const response = await fetch('/api/export/json', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({results: searchResults})
+                });
+                
+                const blob = await response.blob();
+                downloadBlob(blob, 'epstein_results.json');
+                showNotification('JSON exported!', 'success');
+            } catch (error) {
+                showNotification('Export failed: ' + error.message, 'error');
+            }
+        }
+        
+        async function showNetworkGraph() {
+            try {
+                const response = await fetch('/api/network-graph', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({results: searchResults})
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    const win = window.open('', '_blank');
+                    win.document.write(data.html);
+                    showNotification('Network graph opened!', 'success');
+                } else {
+                    showNotification('Failed to generate graph', 'error');
+                }
+            } catch (error) {
+                showNotification('Error: ' + error.message, 'error');
+            }
+        }
+        
+        function downloadBlob(blob, filename) {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        }
+        
+        function showNotification(message, type) {
+            const notification = document.getElementById('notification');
+            const messageEl = document.getElementById('notificationMessage');
+            
+            messageEl.textContent = message;
+            notification.className = `notification show ${type}`;
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

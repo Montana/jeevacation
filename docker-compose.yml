@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - DATABASE_URL=postgresql://epstein:password@db:5432/epstein
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - SENDGRID_API_KEY=${SENDGRID_API_KEY}
+      - FLASK_DEBUG=False
+    volumes:
+      - ./data:/app/data
+      - ./examples:/app/examples
+    depends_on:
+      - db
+      - redis
+    networks:
+      - epstein-network
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=epstein
+      - POSTGRES_USER=epstein
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - epstein-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U epstein"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    networks:
+      - epstein-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  monitor:
+    build: .
+    command: python -m epstein_enhanced.monitoring.monitor
+    environment:
+      - DATABASE_URL=postgresql://epstein:password@db:5432/epstein
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - SENDGRID_API_KEY=${SENDGRID_API_KEY}
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      - db
+    networks:
+      - epstein-network
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
+
+networks:
+  epstein-network:
+    driver: bridge
