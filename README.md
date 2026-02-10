@@ -4,7 +4,7 @@
 
 **jeevacation** helps you quickly check whether names from your LinkedIn connections (or any contact list) appear in newly released public records, without manually digging through thousands of pages.
 
-Instead of flipping PDFs like it’s 1999, **jeevacation** turns the process into something structured, searchable, and repeatable. It uses a CLI, REST API, and optional web app to scan documents, flag matches, and help answer the question everyone asks after a new release:
+I was drawing some inspiration from the clever [EpsteIn](https://github.com/cfinke/EpsteIn) and thought could I improve this?
 
 **“Who shows up where in these files?”**
 
