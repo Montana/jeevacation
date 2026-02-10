@@ -1,166 +1,49 @@
-# jeevacation
+# Jeevacation
 
 ![Jeevacation Logo](https://github.com/user-attachments/assets/df05d79f-1db6-4d68-a1b7-11965aad0894)
 
-jeevacation transforms the overwhelming task of sifting through millions of pages of court documents into a streamlined, intelligent process. Instead of manually combing through PDFs, this system provides structured access to Epstein document releases via command-line tools, REST APIs, and an interactive web application.
+On the front end jeevacation takes the nightmare of digging through endless stacks of court documents and turns it into something straightforward and smart. Forget scrolling through PDFs for hours—this tool gives you organized access to the Epstein case releases through easy-to-use command-line interfaces, REST APIs, and a slick web app. At its core, it's all about answering one key question quickly: who shows up where in these public filings? And it does so in a way that's easy to repeat, track, and share.
 
-It's built for anyone who needs quick, reliable answers to a simple question: **who appears where** in public court filings—in a way that's repeatable, auditable, and exportable.
+Inspired by [EpsteIn](https://github.com/cfinke/EpsteIn), jeevacation builds on that idea by scanning your LinkedIn connections against the document database to spot any matches. It goes further with AI-driven context analysis, categorizing mentions (like whether someone's a witness, employee, or something else) and gauging sentiment to help you understand the tone. You can visualize connections through interactive network graphs that highlight relationships and co-occurrences across documents. Plus, it keeps an eye on new releases with automated alerts, and lets you export everything in formats like HTML, JSON, or CSV for whatever you need next.
 
-## What It Does
-- **Searches LinkedIn connections** against document databases for matches.
-- **Analyzes context** with AI-powered categorization and sentiment analysis.
-- **Visualizes relationships** through network graphs between people and documents.
-- **Monitors releases** with automated alerts for new documents.
-- **Exports findings** in versatile formats like HTML, JSON, and CSV.
+This isn't just for tech whizzes—it's designed for journalists piecing together stories, researchers building out networks, legal pros keeping tabs on references, or really anyone curious about mentions in these public records. Whether you're spotting patterns or just checking facts, it makes the process feel less like a chore and more like a tool that works for you.
 
-## Who It's For
-- Journalists uncovering connections.
-- Researchers mapping document networks.
-- Legal professionals tracking references.
-- Anyone exploring public court filings for mentions and contexts.
+## Key Features
 
-## Features
+The search engine at the heart of Jeevacation is built for speed and smarts. It handles batch processing asynchronously, so queries fly through without bogging you down. It catches false positives, matches name variations like nicknames or abbreviations, and ranks results based on context to put the most relevant stuff first.
 
-### Intelligent Search
-- Asynchronous batch processing for lightning-fast queries.
-- False positive detection and smart filtering.
-- Name variation matching (e.g., nicknames, abbreviations).
-- Context-aware ranking of results.
+If you opt in, the AI layer adds real depth: it automatically sorts mentions into categories, analyzes sentiment (think neutral, concerning, or benign), pulls out key facts from excerpts, and even scores matches for confidence. This turns raw data into something insightful without you having to do all the heavy lifting.
 
-### AI Analysis (Optional)
-- Automated categorization of mentions (e.g., witness, employee, victim).
-- Sentiment analysis (neutral, concerning, benign).
-- Key fact extraction from relevant excerpts.
-- Confidence scoring for each match.
+The web interface is intuitive—drag and drop your LinkedIn CSV, filter and sort in real time, spot visual risk indicators at a glance, and export with a single click. For a bigger picture, the network visualization creates graphs of relationships, detects clusters of related people, weights connections by strength, and lets you zoom, pan, and hover for details.
 
-### Web Interface
-- Drag-and-drop CSV upload for LinkedIn connections.
-- Real-time filtering, sorting, and search.
-- Visual risk indicators for quick insights.
-- One-click exports to share findings.
+On the monitoring side, it runs background checks for fresh documents, lets you set alert timings, sends email notifications via SendGrid, and tracks changes over time. Under the hood, it uses SQLAlchemy for database management (SQLite or PostgreSQL), caches PDFs for quick repeats, logs every search for audits, and supports exports in multiple formats.
 
-### Network Visualization
-- Interactive graphs showing co-occurrences in documents.
-- Cluster detection to identify related groups.
-- Weighted edges based on connection strength.
-- Intuitive controls: zoom, pan, hover for details.
+The REST API keeps things flexible with JSON endpoints, rate limiting, authentication hooks, and webhook support for integrating into your own setups.
 
-### Monitoring & Alerts
-- Automated background checks for new document releases.
-- Customizable alert intervals.
-- Email notifications powered by SendGrid.
-- Change tracking to monitor updates over time.
+## Getting Started
 
-### Data Layer
-- SQLAlchemy ORM with support for SQLite or PostgreSQL.
-- PDF caching for optimized repeated access.
-- Full audit trail of all searches.
-- Exports to HTML, JSON, and CSV.
+You'll need Python 3.9 or higher, along with pip (or pipx if you prefer isolated environments). For container fans, Docker is optional but handy. If you want the AI bells and whistles, grab an Anthropic API key; for alerts, a SendGrid key does the trick.
 
-### REST API
-- JSON-based endpoints for requests and responses.
-- Built-in rate limiting and authentication support.
-- Webhook integration for seamless workflows.
+Kick things off in three simple steps: clone the repo from https://github.com/Montana/jeevacation.git, hop into the directory, and run ./quickstart.sh. That script sets up a virtual environment, installs what you need, initializes the database, and creates config templates.
 
-## Quick Start
+Once that's done, activate the venv with source .venv/bin/activate, then try your first search: python cli.py search --connections /path/to/Connections.csv. To fire up the web UI, just run python cli.py web and head to http://localhost:5000 in your browser.
 
-### Prerequisites
-- Python 3.9+
-- pip (or pipx for isolated installs)
-- (Optional) Docker for containerized deployment
-- (Optional) Anthropic API key for AI features
-- (Optional) SendGrid API key for email alerts
+For a more hands-on install without the script, after cloning, create and activate a venv, pip install -r requirements.txt and pip install -e ., copy .env.example to .env, and run python cli.py db init. Toss in those optional API keys to .env if you're using them.
 
-### Install in 3 Steps
-```bash
-git clone https://github.com/Montana/jeevacation.git
-cd jeevacation
-./quickstart.sh
-```
+If Docker's your thing, docker compose up --build gets you running, with the app at http://localhost:5000.
 
-The `quickstart.sh` script handles everything: creates a virtual environment, installs dependencies, initializes the database, and generates config templates.
+## Grabbing Your LinkedIn Data
 
-### First Search
-```bash
-source .venv/bin/activate
-python cli.py search --connections /path/to/Connections.csv
-```
+To feed in your connections, head to LinkedIn's Settings & Privacy under Data privacy. Request a copy of your data, select Connections, and download the archive. Unzip it, and you'll find Connections.csv ready to go.
 
-### Launch Web UI
-```bash
-python cli.py web
-```
-Open [http://localhost:5000](http://localhost:5000) in your browser.
+## How to Use It
 
-## Detailed Installation
+The CLI is your entry point—check python cli.py --help for all options. A basic search is as easy as python cli.py search --connections Connections.csv. Amp it up with AI: add --use-ai --api-key sk-xxx. Export to JSON with --format json --output results.json, or build a graph via python cli.py graph --connections Connections.csv --output network.html.
 
-### Local Development
-```bash
-git clone https://github.com/Montana/jeevacation.git
-cd jeevacation
+For the web experience, python cli.py web launches it—upload your CSV, search, filter, and explore visuals right there.
 
-python3 -m venv .venv
-source .venv/bin/activate
+If you're coding, import the modules like this in Python:
 
-pip install -r requirements.txt
-pip install -e .
-
-cp .env.example .env
-python cli.py db init
-```
-
-Add optional keys to `.env`:
-```
-ANTHROPIC_API_KEY=sk-ant-your-key-here
-SENDGRID_API_KEY=SG.your-key-here
-```
-
-### Docker
-```bash
-docker compose up --build
-```
-Access the web app at [http://localhost:5000](http://localhost:5000).
-
-## Getting Your LinkedIn Connections.csv
-1. Go to LinkedIn → Settings & Privacy → Data privacy.
-2. Select "Get a copy of your data" → Choose "Connections" → Request archive.
-3. Download the ZIP, extract it, and find `Connections.csv`.
-
-## Usage
-
-### CLI
-Explore commands:
-```bash
-python cli.py --help
-```
-
-Basic search:
-```bash
-python cli.py search --connections Connections.csv
-```
-
-With AI analysis:
-```bash
-python cli.py search --connections Connections.csv --use-ai --api-key sk-xxx
-```
-
-Export to JSON:
-```bash
-python cli.py search --connections Connections.csv --format json --output results.json
-```
-
-Generate network graph:
-```bash
-python cli.py graph --connections Connections.csv --output network.html
-```
-
-### Web UI
-```bash
-python cli.py web
-```
-Upload your CSV, run searches, and visualize results interactively.
-
-### Python API
 ```python
 import asyncio
 from jeevacation.core.search_client import EpsteinSearchClient
@@ -181,46 +64,12 @@ async def main():
 asyncio.run(main())
 ```
 
-### REST API
-Start the server:
-```bash
-python cli.py api
-```
+The REST API starts with python cli.py api. Upload a CSV using curl -X POST http://localhost:5000/api/upload -F "file=@Connections.csv", then trigger a search: curl -X POST http://localhost:5000/api/search -H "Content-Type: application/json" -d '{"filter_common_names": true, "use_ai_analysis": true}'.
 
-Upload CSV:
-```bash
-curl -X POST http://localhost:5000/api/upload -F "file=@Connections.csv"
-```
+## Under the Hood
 
-Run search:
-```bash
-curl -X POST http://localhost:5000/api/search \
-  -H "Content-Type: application/json" \
-  -d '{"filter_common_names": true, "use_ai_analysis": true}'
-```
+The project's laid out clearly: core/ handles search and parsing, ai/ does the smart analysis, web/ powers the UI, api/ manages endpoints, database/ deals with storage and models, monitoring/ covers alerts and checks, utils/ has helpers for reports and graphs, and cli.py ties it all together as the main entry.
 
-## Architecture
-```
-jeevacation/
-├── core/        # Search and parsing logic
-├── ai/          # AI context analysis
-├── web/         # Web UI components
-├── api/         # REST endpoints
-├── database/    # Persistence and models
-├── monitoring/  # Alerts and scheduled checks
-├── utils/       # Reports, graphs, and helpers
-└── cli.py       # CLI entrypoint
-```
+## A Word of Caution
 
-## Important Disclaimer
-A mention in court documents does **not** imply wrongdoing, involvement, or guilt. Individuals may appear for legitimate reasons, such as being witnesses, employees, legal professionals, victims, or through incidental references.
-
-Use this tool responsibly:
-- Always review full context before drawing conclusions.
-- Treat AI outputs as starting points, not final verdicts.
-- Account for false positives, especially with common names.
-- Avoid making accusations based solely on matches.
-
-This project promotes discoverability and transparency in public records—it does not draw conclusions.
-
-Inspired by: [https://github.com/cfinke/EpsteIn](https://github.com/cfinke/EpsteIn)
+Remember, just because a name pops up in these documents doesn't mean anything shady—people show up as witnesses, staff, victims, or even random mentions. Always dig into the full context, see AI insights as a jump-off point, watch for false hits (common names are tricky), and never jump to conclusions or accusations based on this alone. Jeevacation is about making public info easier to navigate, not about judging anyone.
